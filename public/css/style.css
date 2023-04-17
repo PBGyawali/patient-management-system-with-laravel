@@ -1,0 +1,68 @@
+
+
+.bg-dark {
+    background-color: rgb(39, 39, 39)!important;
+}
+#sidebar li
+{
+    border-bottom: 1px solid #f9f9f9;
+}
+#sidebar li:first-child
+{
+    border-top: 1px solid #f9f9f9;
+}
+
+#sidebar li a:hover,.dropdown-btn:hover,.active:hover
+{background-color: rgb(146, 140, 140);
+    background-color: rgb(218, 119, 5)!important;
+	color: white;
+}
+.active
+{
+    background-color: green!important;
+}
+.active,.inactive
+{
+	color: white!important;
+    line-height: 40px;
+}
+
+/*dashboard*/
+
+div.card,div.card a,div.stats.span,a.stats:hover, div.stats:hover,
+div.stats:hover span,div.stats span:hover{
+    cursor:pointer;
+    text-decoration: none!important;
+}
+a.stats:hover, div.stats:hover, div.stats:hover span,div.stats span:hover{
+    background-color: #3a032e!important;
+    color:yellow!important;
+    transform: translateY(-10px);
+}
+@media screen and (max-width: 1000px) {
+    h1{
+      font-size: 1.25rem;
+  }
+
+  .active_class,.inactive_class{
+    line-height: 20px;
+}
+.nav-link{
+    padding-right:0.7rem;
+}
+
+@media screen and (max-width: 650px) {
+    h1{
+      font-size: 1.25rem;
+  }
+
+  .active_class,.inactive_class{
+    line-height: 20px;
+}
+.nav-link{
+    padding-right:0.7rem;
+}
+}
+
+
+
