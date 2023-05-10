@@ -10,9 +10,11 @@ use App\Models\CompanyInfo;
         }
         function fill_list($category,$conditions =null,$category_id=null,$value=null,$attr=array())
         {
-            $columnname=isset($attr['column'])?$attr['column']:'';
-            $compare=isset($attr['compare'])?$attr['compare']:'=';
-            $query = DB::table($category.'s')->orderBy($columnname?$columnname:$category."_name", 'ASC');
+            $columnname=$attr['column']??null;
+            $compare=$attr['compare']??'=';
+			$model='App\Models\\'.$category;
+			$prefix=$category.'_';
+            $query = $model::orderBy($columnname??$prefix."name", 'ASC');
             if($conditions)
             foreach($conditions as $key=> $column)
             {
@@ -23,24 +25,25 @@ use App\Models\CompanyInfo;
             {
               $query->whereNotIn($key, $column);
             }
-            if(isset($attr['notnull']))
-                $query->whereNotNull($attr['notnull']);
+            if(isset($attr['notnull'])){
+				$query->whereNotNull($attr['notnull'])->where($attr['notnull'],'!=','');
+			}
+                
             $result =$query->get();
             $output = '';
             $selected_value = $value;// value from database
-            $output .= '<option value="" selected hidden disabled> Select '.ucwords($columnname?$columnname:$category).'</option>';
+            $output .= '<option value="" selected hidden disabled> Select '.ucwords($columnname??$category).'</option>';
             foreach($result as $row)
             {
-                $selected = ($selected_value == $row->{$columnname?$columnname:$category."_id"}) ? "selected" : "";
-                $output .= '<option value="'.$row->{$columnname?$columnname:$category."_id"}.'"'. $selected. '>'.$row->{$columnname?$columnname:$category."_name"}.'</option>';
+                $selected = ($selected_value == ($row->$columnname??$row->getKey())) ? "selected" : "";
+                $output .= '<option value="'.($row->$columnname??$row->getKey()).'"'. $selected. '>'.($row->$columnname??$row->{$prefix."name"}).'</option>';
             }
             return $output;
         }
         function load_email()
         {
-            $attr=array('column'=>'email','notnull'=>'email',
-			'compare'=>'!=','ignore'=>['user_type'=>['master','owner']]);
-            return $this->fill_list('user',array('email'),array(''),"",$attr);
+            $attr=array('column'=>'email','notnull'=>'email');
+            return $this->fill_list('user','','',"",$attr);
         }
         public function load_department(){
             return $this->fill_list('department');

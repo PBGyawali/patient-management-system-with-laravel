@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -17,7 +23,7 @@ class User extends Authenticatable
      * @var array
      */
 
-    protected $fillable = ['username','email','password','user_status','profile','address','user_type','contact_no'];
+    protected $fillable = ['username','email','password','user_status','profile','address','user_type','contact_no','birthdate','gender','role','name'];
 
     protected $guarded = ['id'];
 
@@ -29,7 +35,6 @@ class User extends Authenticatable
 
     protected $casts = ['created_at' => 'datetime'];
 
-   // protected $dates = ['created_at'];
 
        public function setPasswordAttribute($password)
     {
@@ -75,19 +80,23 @@ class User extends Authenticatable
 
     public function is_admin()
     {
-        return $this->user_type=='master' ? true : false; // this looks for an admin column in your users table
+        return $this->user_type=='master'; // this looks for an admin column in your users table
     }
 
     function is_active(){
-        return $this->user_status=='active' ? true: false ;
+        return $this->user_status=='active';
     }
 
     function is_doctor(){
-        return $this->user_type=='doctor' ? true: false ;
+        return $this->user_role=='doctor';
     }
 
-    function is_same_user($data)	{
-        return $data==$this->id ? true : false;
+
+    function is_same_user($data){
+        if ($data instanceof Model) {
+            return $this->is($data);
+        }
+        return $data==$this->id;
     }
 
 }

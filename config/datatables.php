@@ -98,7 +98,8 @@ return [
          * Note: Adding columns to list will make us available to XSS attacks.
          */
         'raw'       => ['action','profile','created_at','status','appointment_status','patient_status',
-        'specialization_status','doctor_status','user_status','service_status'],
+        'specialization_status','doctor_status','user_status','service_status',
+        'department_status','tax_status','schedule_status'],
 
         /*
          * List of columns are are forbidden from being searched/sorted.

@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Contracts\Auth\Guard;
 class AdminMiddleware
 {
@@ -37,17 +39,10 @@ class AdminMiddleware
     {
             if (!auth()->user()->is_admin()) {
                 if ($request->ajax()) {
-                    return response()->json(array('error'=>
-                    '<div class="alert alert-danger alert-dismissible fade show">
-                    You must be an admin to perform this action
-                    <button type="button" class="close" onclick="hide()">&times;</button>
-                    </div>'));
+                    return response()->json(['error'=>
+                    __('message.error.admin_action')]);
                 }
-                return back()->with('error',
-                '<div class="alert alert-danger alert-dismissible fade show">
-                You must be an admin to view this page!
-                <button type="button" class="close" onclick="hide()">&times;</button>
-                </div>');
+                return back()->with('error',__('message.error.admin_view'));
             }
 
         return $next($request);

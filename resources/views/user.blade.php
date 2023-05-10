@@ -1,15 +1,15 @@
-@include('config')
-@include('layouts.header')
-@include('layouts.sidebar')
-	        <div class="col-sm-10 offset-sm-2 py-4">
-                @include('message')
-	            <div class="card">
-	            	<div class="card-header">
-	            		@include('header_card',['element'=>'user','name'=>'Management'])
-	            	</div>
-	            	<div class="card-body">
+@include('layouts.new_header')
+        @include('layouts.new_sidebar')
+        <div class="page-wrapper">
+			@include('message')
+            <div class="content">
+                <div class="row">
+                    @include('page_header',['element'=>'user'])
+                </div>
+				<div class="row">
+					<div class="col-md-12">
 	            		<div class="table-responsive">
-	            			<table class="table table-striped table-bordered" id="table">
+	            			<table class="table table-striped" id="table">
 	            				<thead>
 	            					<tr>
                                         <th class="id">ID</th>
@@ -27,8 +27,9 @@
 	            	</div>
 	            </div>
 	        </div>
-</body>
-</html>
+			
+		</div>
+		@include('delete_modal',['element'=>'user'])
 
 <div id="Modal" class="modal fade">
   	<div class="modal-dialog">
@@ -45,7 +46,7 @@
 		          		<div class="row">
 			            	<label class="col-md-4 text-right">User Name <span class="text-danger">*</span></label>
 			            	<div class="col-md-8">
-			            		<input type="text" name="username" id="user_name" class="form-control"  required data-parsley-maxlength="150" data-parsley-trigger="keyup" />
+			            		<input type="text" name="username" id="username" class="form-control"  required data-parsley-maxlength="150" data-parsley-trigger="keyup" />
 			            	</div>
 			            </div>
 		          	</div>
@@ -53,7 +54,7 @@
 		          		<div class="row">
 			            	<label class="col-md-4 text-right">User Contact No. <span class="text-danger">*</span></label>
 			            	<div class="col-md-8">
-			            		<input type="text" name="contact_no" id="user_contact_no" class="form-control"  data-parsley-maxlength="12" data-parsley-trigger="keyup" />
+			            		<input type="text" name="contact_no" id="contact_no" class="form-control"  data-parsley-maxlength="12" data-parsley-trigger="keyup" />
 			            	</div>
 			            </div>
 		          	</div>
@@ -61,7 +62,7 @@
 		          		<div class="row">
 			            	<label class="col-md-4 text-right">User Email <span class="text-danger">*</span></label>
 			            	<div class="col-md-8">
-			            		<input type="email" name="email" id="user_email" class="form-control" required data-parsley-type="email"data-parsley-maxlength="150" data-parsley-trigger="keyup" />
+			            		<input type="email" name="email" id="email" class="form-control" required data-parsley-type="email"data-parsley-maxlength="150" data-parsley-trigger="keyup" />
 			            	</div>
 			            </div>
 		          	</div>
@@ -70,7 +71,7 @@
 		          		<div class="row">
 			            	<label class="col-md-4 text-right">User Password <span class="text-danger">*</span></label>
 			            	<div class="col-md-8">
-			            		<input type="password" name="password" id="user_password" class="form-control" data-parsley-maxlength="16" data-parsley-trigger="keyup" />
+			            		<input type="password" name="password" id="password" class="form-control" data-parsley-maxlength="16" data-parsley-trigger="keyup" />
 			            	</div>
 			            </div>
 		          	</div>
@@ -94,7 +95,7 @@
 		          		<div class="row">
 			            	<label class="col-md-4 text-right">User Profile</label>
 			            	<div class="col-md-8">
-			            		<input type="file" name="image" id="user_image" />
+			            		<input type="file" name="image" id="user_image" class="file_uploaded"/>
 								<span id="user_uploaded_image"></span>
 			            	</div>
 			            </div>
@@ -108,18 +109,6 @@
     	</form>
   	</div>
 </div>
-
 @include('layouts.footer')
-<script>
-
-        function update(data){
-        $('#user_password').removeAttr('required data-parsley-minlength data-parsley-trigger' );
-        $('#user_name').val(data.username);
-        $('#user_contact_no').val(data.contact_no);
-        $('#user_email').val(data.email);
-        $('#user_type').val(data.user_type);
-        $('#user_uploaded_image').html('<img src="'+data.profile+'" class="img-fluid img-thumbnail" width="75" height="75" /><input type="hidden" name="hidden_user_image" value="'+data.profile+'" />');
-        }
-</script>
-
+@include('layouts.footer_script')
 

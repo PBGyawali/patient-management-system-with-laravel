@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use App\Helper\Helper;
 use App\Helper\Select;
 use App\Models\User;
-
+use App\Models\Doctor;
+use App\Models\Appointment;
+use App\Models\PatientHistory;
 class CompanyInfoController extends Controller
 {
     public $companyInfo=array();
@@ -19,6 +21,17 @@ class CompanyInfoController extends Controller
 
     public function index()
     {
+
+        $appointments =Appointment::withdepartment()->withdoctors()->withpatientdata()
+                        ->withdoctordata('u1')
+                        ->select('*','appointments.patient_name as patient_name')
+                        ->take(10)
+                        ->get();
+        $doctors=Doctor::withdepartment()->withspecialization()->withuserdata()->take(10)->get();
+        $patient_histories=PatientHistory::withdepartment()->withdoctors()
+            ->leftJoin('users as u2','u2.id','doctors.doctor_user_id')
+            ->take(10)
+            ->get();
         $info=$this->companyInfo;
         $today_patient=$this->today_patient();
         $yesterday_patient=$this->yesterday_patient();
@@ -28,13 +41,16 @@ class CompanyInfoController extends Controller
         $avg_month_patient= $this->avg_month_patient();
         $avg_yearly_patient=$this->avg_yearly_patient();
         $total_appointments=$this->total_appointments();
-
+        $total_active_appointments=$this->total_active_appointments();
+        $total_pending_appointments=$this->total_pending_appointments();
+        $total_doctors=$this->total_doctors();
         $fullmonthvalue=$this->fullmonthvalue();
         $fullmonth=$this->fullmonth();
         $patient_sources=$this->patient_sources();
-        $page='dashboard';
+        $page='dashboard';       
         return view('home',
-        compact('info','today_patient',
+        compact('info','total_active_appointments','total_pending_appointments',
+        'today_patient','total_doctors','doctors','appointments','patient_histories',
         'yesterday_patient',        'last_seven_day_patient',        'total_patient',
         'patient_limit',        'avg_month_patient',        'avg_yearly_patient'
         ,'total_appointments','fullmonthvalue','fullmonth', 'patient_sources','page')
@@ -86,7 +102,7 @@ class CompanyInfoController extends Controller
             User::create($request->all());
         session(['setup' =>null]);
         session(['website' =>$request->facility_name]);
-        return response()->json(array('error'=>'','response'=>'<div class="alert alert-success">Details Created Successfully</div>'));
+        return response()->json(array('response'=>__('message.detail_create')));
     }
 
     public function update(Request $request, CompanyInfo $company_info)
@@ -101,7 +117,7 @@ class CompanyInfoController extends Controller
         $fields['currency_symbol']=Select::Get_currency_symbol($request->facility_currency);
         $company_info->update(array_merge(array_filter($request->all()),$fields));
         session(['website' =>$request->facility_name]);
-        return response()->json(array('error'=>'','response'=>'<div class="alert alert-success">Details Updated Successfully</div>'));
+        return response()->json(array('response'=>__('message.detail_update')));
     }
 
 
@@ -209,7 +225,20 @@ class CompanyInfoController extends Controller
 
     function total_appointments()
     {
+        return $this->CountTable("appointments");
+    }
+    function total_active_appointments()
+    {
+        return $this->CountTable("appointments",'appointment_status','active');
+    }
+    function total_pending_appointments()
+    {
         return $this->CountTable("appointments",'appointment_status','inactive');
+    }
+
+    function total_doctors()
+    {
+        return $this->CountTable("doctors");
     }
 
     function ValuePerMonth($value,$table='patient')	{

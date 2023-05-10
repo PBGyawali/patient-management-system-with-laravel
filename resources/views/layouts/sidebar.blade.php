@@ -1,7 +1,4 @@
 <?php
-$page=(isset($page))?$page:'';
-	$profile_active=$dashboard_active=$patient_active=$appointment_active=$user_active=$department_active=$doctor_active=$specialization_active='inactive';
-	${$page."_active"} = 'active';
 	$username=Auth::user()->username??'';
 	$profile_image=Auth::user()->profile??'';
 	$website=$info->facility_name??'';
@@ -10,17 +7,20 @@ $page=(isset($page))?$page:'';
 	    <div class="row">
 	        <div class="col col-md-6">
 			<a data-toggle="collapse" href="" data-target=".collapse" role="button">
-			<h4 class=" mt-2 mb-2 text-center text-white"><?php echo $website?>  <span class="d-none d-md-inline-block"> Patient Management System </span> <span class="d-inline-block d-md-none"> PMS</span> </h4>
-	            </a>
+				<h4 class=" mt-2 mb-2 text-center text-white">
+				<?php echo $website?>  
+				<span class="d-none d-md-inline-block"> Patient Management System </span> 
+				<span class="d-inline-block d-md-none"> PMS</span> </h4>
+	        </a>
 			</div>
 			<div class="col-2 col-md-6 sidebar text-right">
 			<ul class="nav navbar-nav navbar-right">
 			<div class="shadow dropdown-list dropdown-menu  dropdown-menu-right " aria-labelledby="alertsDropdown"></div>
                             <li class="dropdown " role="presentation">
 							<a  data-toggle="dropdown" aria-expanded="false" href="#">
-							<span class="label label-pill label-danger count text-white"><?php echo ucwords($username) ?></span>
+							<span class="label label-pill label-danger count text-white"><?php echo ucwords(Auth::user()->username??'') ?></span>
 							<span id="user_uploaded_image_small" class="mt-0">
-							<img src="<?php echo $profile_image; ?>" class="img-fluid rounded-circle" width="30" height="30"/></a></span>
+							<img src="<?php echo Auth::user()->profile??''; ?>" class="img-fluid rounded-circle profile_image" width="30" height="30"/></a></span>
 									<div class="dropdown-menu shadow dropdown-menu-right animated--grow-in" role="menu">
 									<a class="dropdown-item" role="presentation" href="profile"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-600"></i>&nbsp;Profile</a>
 									<a class="dropdown-item" role="presentation" href="change_password"><i class="fas fa-key fa-sm fa-fw mr-2 text-gray-600"></i>&nbsp;Change password</a>

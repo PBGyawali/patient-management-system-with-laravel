@@ -17,18 +17,21 @@ class DepartmentController extends Controller
     {
         if ($request->ajax()) {
             $data =Department::leftJoin('doctors','departments.department_id','doctors.department_id')
-            ->select('departments.department_id as id','departments.department_name','departments.department_capacity', DB::raw('group_CONCAT(doctor_name) as doctors'))
+            ->select('departments.department_id as id','departments.department_name','departments.department_capacity','department_status', DB::raw('group_CONCAT(doctor_name) as doctors'))
             ->groupBy('departments.department_id')
             ->orderBy('departments.department_name')
             ->get();
             return DataTables::of($data)
-                ->addColumn('action', function($data){
-                    $actionBtn = '
-                    <div class="text-center">
-			<button type="button" name="edit_button" data-prefix="Department" class="btn btn-warning btn-sm update" data-id="'.$data->id.'"><i class="fas fa-edit"></i></button>
-			&nbsp;
-			<button type="button" name="delete_button" class="btn btn-danger btn-sm delete" data-id="'.$data->id.'"><i class="fas fa-times"></i></button>
-			</div>';
+            ->editColumn('department_status', function ($data) {               
+                    $status =$data->department_status;
+                    $class=$data->is_active()?'success':'danger';
+                    //render status with css from view
+                    return view('custom_badge',compact('status','class'))->render();               
+            })
+            ->addColumn('action', function($data){
+                    $element='department';
+                    $id=$data->id;
+                    $actionBtn = view('text_buttons',compact('id','element'))->render();            
                     return $actionBtn;
                 })
                 ->make(true);
@@ -36,7 +39,7 @@ class DepartmentController extends Controller
 
         $info=CompanyInfo::first();
         $page='department';
-        return view('department',
+        return view('departments',
         compact('info','page' )      );
     }
 
@@ -48,7 +51,8 @@ class DepartmentController extends Controller
             'department_name' => ['required', 'string', 'max:255','unique:departments'],
         ]);
         Department::create($request->all());
-       return response()->json(array('response'=>'<div class="alert alert-success">The department was created!</div>'));
+        return response()->json(array('response'=>__('message.create',['name'=>'department'])));
+
     }
 
     public function edit(Department $department)
@@ -62,13 +66,15 @@ class DepartmentController extends Controller
         $this->validate($request, [
             'department_name' => ['required', 'string', 'max:255',Rule::unique('departments')->ignore($department)]]);
         $department->update($request->all());
-        return response()->json(array('response'=>'<div class="alert alert-success">The department was updated!</div>'));
+        return response()->json(array('response'=>__('message.update',['name'=>'department'])));
+       
     }
 
     public function destroy(Department $department)
     {
         $department->delete();
-		return response()->json('<div class="alert alert-success">Department Deleted</div>');
+        return response()->json(array('response'=>__('message.delete',['name'=>'department'])));
+
     }
 
 

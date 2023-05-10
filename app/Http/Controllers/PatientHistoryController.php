@@ -25,17 +25,16 @@ class PatientHistoryController extends Controller
                 $query->whereBetween('patient_enter_time',[$request->from_date, $request->to_date]);
             $data=$query->get();
             return DataTables::of($data)
-            ->addColumn('action', function($data){
-                $actionBtn = '
-                <div class="text-center">
-                    <button type="button"class="btn btn-primary btn-sm view" data-id="'.$data->patient_history_id.'"><i class="fas fa-eye"></i></button>
-                    &nbsp;
-                    <button type="button" data-prefix="Patient History"class="btn btn-warning btn-sm update" data-id="'.$data->patient_history_id.'"><i class="fas fa-edit"></i></button>
-                    &nbsp;
-                    <button type="button"  class="btn btn-danger btn-sm delete" data-id="'.$data->patient_history_id.'"><i class="fas fa-times"></i></button>
-                    <button type="button"  class="btn btn-success btn-sm status p-0" data-prefix="patient" data-status="'.$data->patient_status.'" data-id="'.$data->patient_history_id.'"><i class="far fa-calendar-check  fa-2x"></i></button>
-                </div>';
-                    return $actionBtn;
+                ->addColumn('action', function($data){
+                    $id=$data->getKey();
+                    // status of the row
+                    $status=$data->patient_status;
+                    // data to display on modal, tables
+                    $prefix="patient";
+                    // optional button to display
+                    $buttons=['delete','edit','status','view'];
+                    $actionBtn = view('control-buttons',compact('buttons','id','status','prefix'))->render();
+                   return $actionBtn;                    
                 })
             ->editColumn('patient_enter_time', function ($data) {
                return  $data->patient_enter_time->format('Y-m-d H:s');
@@ -45,12 +44,10 @@ class PatientHistoryController extends Controller
                  return ;
                 return $data->patient_out_time->format('Y-m-d H:s');
                 })
-            ->editColumn('patient_status', function ($data) {
-                if(in_array($data->patient_status,array( 'In','active')))
-                    $status = '<span  class="badge badge-success btn-sm">In</span>';
-                else
-                $status ='<span  class="badge badge-danger btn-sm">Out</span>';
-                    return $status;
+            ->editColumn('patient_status', function ($data) {               
+                    $status =in_array($data->patient_status,array( 'In','active'))?'in':'out';
+                    $class=$status == 'in'?'success':'danger';
+                    return view('custom_badge',compact('status','class'))->render(); 
                 })
                 ->editColumn('patient_enter_by', function ($data) {
                     if (auth()->user()->is_admin())
@@ -63,7 +60,7 @@ class PatientHistoryController extends Controller
         $info=CompanyInfo::first();
         $page='patient';
         $department=Select::instance()->load_department();
-        return view('patient', compact('info','page','department' )      );
+        return view('patients', compact('info','page','department' )      );
     }
 
 
@@ -75,44 +72,29 @@ class PatientHistoryController extends Controller
             'patient_department' => ['required'],
         ]);
         PatientHistory::create($request->all());
-        return response()->json(array('response'=>'<div class="alert alert-success">Patient Activity Record Added</div>'));
+        return response()->json(array('response'=>__('message.create',['name'=>'patient activity'])));
+      
     }
 
+    //live patient status in each departments
 
     public function create()
     {
-        $result = Department::all();
-        $html = '<div class="row">';
+        $result = Department::leftJoin('doctors','doctors.department_id','departments.department_id')
+        ->leftJoin('patient_histories','patient_department','departments.department_id')       
+         ->select('department_name')
+         ->selectRaw("SUM(CASE WHEN doctor_status = 'active' THEN 1 ELSE 0 END ) AS doctors,
+                     SUM( CASE WHEN patient_status = 'active' THEN 1 ELSE 0 END ) AS patients")
+        ->groupBy('department_name')
+        ->get();
+        $html = '';
         foreach($result as $row)
         {
-            $count=PatientHistory:: whereIn('patient_status', ['In','active'])->where('patient_department',$row->getKey())->count();
-            $availabledoctors=Doctor:: where('doctor_status','active')->where('department_id',$row->getKey())->count();
-            if($count)
-            {
-                $html .= '
-                <div class="col-lg-2 mb-3">
-                    <div class="card bg-info text-white shadow">
-                        <div class="card-body">
-                            '.$row->department_name.'
-                            <div class="mt-1 text-white-50 small">'.(($availabledoctors<=$count)?'Full': $availabledoctors-$count.' Place left' ).'</div>
-                        </div>
-                    </div>
-                </div>
-                ';
-            }
-            else
-            {
-                $html .= '
-                <div class="col-lg-2 mb-3">
-                    <div class="card bg-light text-black shadow">
-                        <div class="card-body">
-                            '.$row->department_name.'
-                            <div class="mt-1 text-black-50 small">'.$availabledoctors.' Places Free</div>
-                        </div>
-                    </div>
-                </div>
-                ';
-            }
+            $patient_count=$row->patients;
+            $available_doctors=$row->doctors;
+            $department_name=$row->department_name;
+            $html.= view('live_department_status',
+            compact('patient_count','available_doctors','department_name'))->render();            
         }
         return response()->json($html);
     }
@@ -127,53 +109,30 @@ class PatientHistoryController extends Controller
              ]);
         }
         if ($request->hasAny('patient_status')){
-            $this->fields['patient_out_time']=Helper::get_datetime();
+            $this->fields['patient_out_time']=now();
         }
 
         $patientHistory->update(array_merge(array_filter($request->all()),$this->fields));
-		return response()->json(array('response'=>'<div class="alert alert-success">Patient History Updated</div>'));
+        return response()->json(array('response'=>__('message.update',['name'=>'patient history'])));
+		
     }
     public function show(PatientHistory $patientHistory)
     {
-        $output = '<div class="table-responsive">
-        <table class="table table-bordered">
-            <tr> <td>Patient Name</td>
-                <td>'.$patientHistory->patient_name.'</td>
-            </tr>';
-            if($patientHistory->patient)
-            $output .='
-            <tr>
-            <td>Patient Email</td>
-            <td>'.$patientHistory->patient->patient_email.'</td>
-            </tr>
-            <tr>
-                <td>Patient Mobile No.</td>
-                <td>'.$patientHistory->patient->patient_contact.'</td>
-            </tr>
-             <tr>
-                <td>Patient Address</td>
-                <td>'.$patientHistory->patient->patient_address.'</td>
-            </tr>';
-            $output .='
-             <tr>
-                <td>Department</td>
-                <td>'.$patientHistory->department->department_name.'</td>
-            </tr>
-            <tr>
-                <td>Doctor To visit</td>
-                <td>'.$patientHistory->doctor->doctor_name.'</td>
-            </tr> <tr>
-                <td>Reason to Visit</td>
-                <td>'.$patientHistory->patient_reason_to_visit.'</td>
-            </tr> <tr>
-                <td>Patient_remarks</td><td>
-                <textarea name="patient_remarks" id="patient_remarks" class="form-control">'.$patientHistory->patient_remarks.'</textarea></td>
-            </tr> <tr>
-                <td>Status</td>
-                <td><span class="badge badge-'.($patientHistory->appointment_status == "inactive"?'danger">Waiting':'success">Confirmed').'</span></td>
-            </tr></table></div>';
-            return response()->json(array('response'=>$output));
-        }
+        $viewdatas =[
+            'Patient Name'=>$patientHistory->patient_name,
+            'Patient Email'=>$patientHistory->patient->patient_email,
+            'Patient Mobile No.'=>$patientHistory->patient->patient_contact,
+            'Patient Address'=>$patientHistory->patient->patient_address,
+            'Department'=>$patientHistory->department->department_name,
+            'Doctor To visit'=>$patientHistory->doctor->doctor_name,
+            'Reason to Visit'=>$patientHistory->patient_reason_to_visit,
+            'patient remarks'=>$patientHistory->patient_remarks,
+            'Status'=>['class'=>$patientHistory->appointment_status == "inactive"?'danger':'success',
+                        'value'=>$patientHistory->appointment_status == "inactive"?'waiting':'confirmed'                      ]
+        ];
+        $output=view('view-modal',compact('viewdatas'))->render();
+        return response()->json($output);   
+    }
 
     public function edit(PatientHistory $patientHistory)
     {
@@ -184,7 +143,7 @@ class PatientHistoryController extends Controller
             $data['patient_mobile_no'] = $patientHistory->patient->patient_contact;
             $data['patient_address'] = $patientHistory->patient->patient_address;
         }
-        $data['patient_visit_doctor_name'] =Select::instance()->load_doctor($d);
+        $data['doctor_id'] =Select::instance()->load_doctor($d);
         $data['patient_department'] = $patientHistory->patient_department;
         $data['patient_reason_to_visit'] = $patientHistory->patient_reason_to_visit;
         $data['patient_remarks'] = $patientHistory->patient_remarks;
@@ -195,6 +154,6 @@ class PatientHistoryController extends Controller
     public function destroy(PatientHistory $patientHistory)
     {
         $patientHistory->delete();
-        return response()->json(array('response'=>'<div class="alert alert-success">The Patient History was deleted!</div>'));
+        return response()->json(array('response'=>__('message.delete',['name'=>'patient history'])));        
     }
 }

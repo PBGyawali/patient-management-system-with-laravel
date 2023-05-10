@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\TaxController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PatientHistoryController;
@@ -36,6 +39,26 @@ Route::middleware(['auth'])->group(function(){
         Route::post('/department/{department}/update',[DepartmentController::class, 'update']);
         Route::delete('/department/{department}/delete',[DepartmentController::class, 'destroy']);
 
+
+        Route::get('/tax',[TaxController::class, 'index'])->name('tax');
+        Route::post('/tax/{tax}/edit',[TaxController::class, 'edit']);
+        Route::post('/tax/create',[TaxController::class, 'store']);
+        Route::post('/tax/{tax}/update',[TaxController::class, 'update']);
+        Route::delete('/tax/{tax}/delete',[TaxController::class, 'destroy']);
+
+
+        Route::get('/service',[ServiceController::class, 'index'])->name('service');
+        Route::post('/service/{service}/edit',[ServiceController::class, 'edit']);
+        Route::post('/service/create',[ServiceController::class, 'store']);
+        Route::post('/service/{service}/update',[ServiceController::class, 'update']);
+        Route::delete('/service/{service}/delete',[ServiceController::class, 'destroy']);
+
+        Route::get('/schedule',[ScheduleController::class, 'index'])->name('schedule');
+        Route::post('/schedule/{schedule}/edit',[ScheduleController::class, 'edit']);
+        Route::post('/schedule/create',[ScheduleController::class, 'store']);
+        Route::post('/schedule/{schedule}/update',[ScheduleController::class, 'update']);
+        Route::delete('/schedule/{schedule}/delete',[ScheduleController::class, 'destroy']);
+
         Route::post('/specialization/{specialization}/edit',[SpecializationController::class, 'edit']);
         Route::post('/specialization/create',[SpecializationController::class, 'store']);
         Route::post('/specialization/{specialization}/update',[SpecializationController::class, 'update']);
@@ -58,20 +81,20 @@ Route::middleware(['auth'])->group(function(){
     });
     Route::get('/dashboard',[CompanyInfoController::class, 'index'])->name('dashboard');
 
-    Route::post('/user/{user}/update',[UserController::class, 'update']);
+    Route::post('/user/{user}/update',[UserController::class, 'update'])->name('user.update');
     Route::get('/profile',[UserController::class, 'create'])->name('profile');
     Route::get('/change_password',[UserController::class, 'show'])->name('password');
     Route::post('/change_password/{user}',[UserController::class, 'password']);
 
 
-    Route::get('/patient',[PatientHistoryController::class, 'index'])->name('patient');
-    Route::post('/patient/status',[PatientHistoryController::class, 'create'])->name('patient_status');
+    Route::get('/patient',[PatientController::class, 'index'])->name('patient');
+    Route::post('/patient/status',[PatientController::class, 'create'])->name('patient_status');
     Route::post('/patient/list',[AppointmentController::class, 'create']);
-    Route::post('/patient/{patientHistory}/show',[PatientHistoryController::class, 'show']);
-    Route::post('/patient/{patientHistory}/edit',[PatientHistoryController::class, 'edit']);
-    Route::post('/patient/create',[PatientHistoryController::class, 'store']);
-    Route::post('/patient/{patientHistory}/update',[PatientHistoryController::class, 'update']);
-    Route::delete('/patient/{patientHistory}/delete',[PatientHistoryController::class, 'destroy']);
+    Route::post('/patient/{patient}/show',[PatientController::class, 'show']);
+    Route::post('/patient/{patient}/edit',[PatientController::class, 'edit']);
+    Route::post('/patient/create',[PatientController::class, 'store']);
+    Route::post('/patient/{patient}/update',[PatientController::class, 'update']);
+    Route::delete('/patient/{patient}/delete',[PatientController::class, 'destroy']);
 
     Route::get('/appointment',[AppointmentController::class, 'index'])->name('appointment');
     Route::match(['post','get'],'/appointment/list',[AppointmentController::class, 'create']);
@@ -81,6 +104,21 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/appointment/{appointment}/update',[AppointmentController::class, 'update']);
     Route::delete('/appointment/{appointment}/delete',[AppointmentController::class, 'destroy']);
 
+    
+
 });
 
 require __DIR__.'/auth.php';
+Route::middleware(['auth'])->group(function(){
+    Route::get('/{page}', function ($page) {
+        // Check if the view file exists
+        if (view()->exists($page)) {
+            // Return the view
+            return view($page);
+        } else {
+           
+            // The view file does not exist
+            abort(404);
+        }
+    });
+});

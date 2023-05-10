@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Casts\Attribute;
 class Patient extends Model
 {
     use HasFactory;
@@ -50,5 +50,12 @@ class Patient extends Model
     {
         $query->leftJoin('users','users.id','doctors.doctor_user_id');
 
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($patient) {
+            $patient->patient_enter_by = auth()->id();
+        });
     }
 }

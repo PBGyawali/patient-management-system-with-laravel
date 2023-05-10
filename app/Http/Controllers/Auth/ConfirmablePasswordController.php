@@ -22,7 +22,8 @@ class ConfirmablePasswordController extends Controller
      */
     public function show()
     {
-        return view('auth.confirm-password');
+        $logo=CompanyInfo::first()->facility_alternate_logo;
+        return view('auth.confirm-password',compact('logo'));
     }
 
     /**

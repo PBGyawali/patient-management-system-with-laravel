@@ -1,14 +1,15 @@
+@include('config')
 <x-guest-layout>
     <x-auth-card>
-        {{-- <x-slot name="logo">
-            <a href="/">
+        @isset($logo)
+        <x-slot name="logo">
+            <img src="{{IMAGES_URL.$logo}}" class="rounded-full  cursor-pointer w-40"alt="" >
+        </x-slot>
+        @endisset      
+     
 
-            </a>
-        </x-slot>--}}
-
-        <div class="mb-4 text-sm text-gray-800">
-            {{ __('This is a secure area of the application. Please confirm your password
-            before continuing forward.') }}
+        <div class="mb-4 text-sm text-red-600">
+            {{ __('message.secret') }}
         </div>
 
         <!-- Validation Errors -->
@@ -22,7 +23,7 @@
                 <x-label for="password" :value="__('Password')" />
 
                 <x-input id="password" class="block mt-1 w-full"
-                                type="text"
+                                type="password"
                                 name="password"
                                 required autocomplete="current-password" />
             </div>
@@ -30,16 +31,21 @@
                 <x-label for="secret_password" class="mt-5 " :value="__('Secret Password')" />
 
                 <x-input id="secret_password" class="block mt-1 w-full"
-                                type="text"
+                                type="password"
                                 name="secret_password"
                                 required autocomplete="current-password" />
 
                 <span class="text-red-600 pb-4">{{$errors->first('secret_password')}}</span>
             </div>
 
-            <div class="flex justify-end mt-4">
+            <div class="flex justify-between mt-6">
+                <a href="{{url()->previous()}}" class="btn btn-link inline-flex items-center px-4 py-2
+                     bg-blue-700 rounded-md text-white uppercase hover:bg-purple-800  ">
+                    {{ __('Return') }}
+                </a>
+
                 <x-button>
-                    {{ __('Confirm') }}
+                    {{ __('Forward') }}
                 </x-button>
             </div>
         </form>

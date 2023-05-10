@@ -49,7 +49,7 @@ class Doctor extends Model
     }
 
     function is_active(){
-        return $this->doctor_status=='active' ? true: false ;
+        return $this->doctor_status=='active';
     }
 
     public function scopeWithSpecialization($query)
@@ -61,6 +61,14 @@ class Doctor extends Model
     {
         $query->leftJoin('users','users.id','doctors.doctor_user_id');
 
+    }
+
+    public function getProfileAttribute($value){
+        if(is_dir(config('app.images_dir').$value)
+        ||  !file_exists(config('app.images_dir').$value))
+                return config('app.storage_url').'user_profile.png';
+        else
+                return config('app.storage_url').$value;
     }
 
 }

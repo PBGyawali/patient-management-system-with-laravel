@@ -14,6 +14,8 @@ class Helper
 		return date("Y-m-d H:i:s",  STRTOTIME(date('h:i:sa')));
     }
     private static function check_array($value){
+        if(!$value)
+        return array();
 		if (is_array($value))
 			return $value;
 			return array($value);

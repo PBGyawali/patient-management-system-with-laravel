@@ -8,13 +8,13 @@ body{
 	background-color: #4e73df;
 	background-image: linear-gradient(180deg,#4e73df 10%,#224abe 100%);
 	background-size: cover;height: 100%;
-	margin-top:0px;
+	margin-top:60px;
 	padding-top:0px;
 }
 </style>
 	<body  >
 		<div class="container container-fluid  col-md-6">
-		<div class="logo text-center">
+		<div class="logo text-center mb-5">
            <img src="<?php echo IMAGES_URL.$info->facility_logo?>" alt="" width="120" height="120" class="rounded-circle">
 			</div>
 		<h3 class="text-center text-white"><?php echo  $info->facility_name?> Patient Management System</h3>
@@ -25,7 +25,7 @@ body{
 				<div class="card-body">
 				<fieldset class="border p-2 border-primary">
 				<legend class= "text-center w-auto" style="width:auto">Sign in to your account</legend>
-					<form method="post" id="form" action=" {{ route('login') }}">
+					<form method="post" id="form" action="{{ route('login')}}">
                         @csrf
 						<div class="form-group">
 							<label>Username/Email </label>
@@ -33,8 +33,10 @@ body{
 								<div class="input-group-prepend">
 								<span class="input-group-text" id="basic-addon1"><i class="fa fa-user fa-md position-relative text-primary"></i></span>
 								</div>
-								<input type="text" name="email"  class="form-control" id="user_email"placeholder="Your Username/ Email Address..."  required/>
-								</div>
+								<input type="text" name="email"  class="form-control" id="user_email"placeholder="Your Username/ Email Address..."  value="{{ old('email') }}" required/>
+
+
+                            </div>
 								</div>
 								<div class="form-group">
 								    <label>Password</label>
@@ -49,15 +51,11 @@ body{
                                     <button type="button"  id="hint" class="btn btn-info">Login hint</button>
                                 </div>
 						</fieldset>
-						<div class="copyright text-center">
-                        &copy; <span class="current-year"><script>document.write(new Date().getFullYear())</script></span>
-                        <span class="text-bold text-uppercase"> <?php echo $info->facility_name?></span>.
-                        <span>All rights reserved</span>
-					</div>
+						@include('copyright_footer')
 					</form>
 				</div>
 			</div>
-            @include('layouts.footer')
+            @include('layouts.footer_script')
 <link rel="stylesheet" href="<?php echo CSS_URL.'parsley.css'?>" >
 <script type="text/javascript" src="<?php echo JS_URL.'parsley.min.js'?>"></script>
 <script type="text/javascript" src="<?php echo JS_URL.'popper.min.js'?>"></script>
@@ -99,8 +97,7 @@ body{
 
 <script>
 function update(data){
-    $('#message').html('<div class="alert alert-success">Login success. Redirecting.......</div>');
+    showMessage('Login success. Redirecting.......','success')
     enableButton(true);
-    window.location.assign('.'+data.response);
 }
 </script>

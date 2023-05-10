@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-
+use Illuminate\Database\Eloquent\Casts\Attribute;
 class Appointment extends Model
 {
     use HasFactory;
@@ -16,8 +16,6 @@ class Appointment extends Model
     'appointment_department_id','appointment_enter_by','appointment_reason'];
 
     protected $casts = ['appointment_start_time' => 'datetime','appointment_end_time' => 'datetime'];
-
-    protected $dates = ['appointment_start_time','appointment_end_time'];
 
     protected $guarded = ['id'];
     protected $hidden = ['password','remember_token'];
@@ -71,7 +69,7 @@ class Appointment extends Model
     }
     public function is_active()
     {
-        return in_array(strtolower($this->appointment_status),['active','confirmed'])?true:false;
+        return in_array(strtolower($this->appointment_status),['active','confirmed']);
     }
     public function creator()
     {
@@ -82,7 +80,7 @@ class Appointment extends Model
     {
         //assign values while creating model
         static::creating(function ($Appointment) {
-            $Appointment->appointment_enter_by = auth()->user()->id;
+            $Appointment->appointment_enter_by = auth()->id();
         });
     }
 

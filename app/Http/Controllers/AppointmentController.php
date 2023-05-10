@@ -23,14 +23,15 @@ class AppointmentController extends Controller
             $data=$query->get();
             return DataTables::of($data)
                 ->addColumn('action', function($data){
-                    $actionBtn = '
-                    <div class="text-center">
-                        <button type="button" class="btn btn-warning btn-sm border border-white update" data-prefix="Appointment" data-id="'.$data->appointment_id.'"><i class="fas fa-edit"></i></button>
-                       <button type="button" class="btn btn-danger btn-sm border border-white delete" data-id="'.$data->appointment_id.'"><i class="fas fa-times"></i></button>
-                        <button type="button" class="btn btn-primary btn-sm view border border-white" data-prefix="Appointment" data-id="'.$data->appointment_id.'"><i class="fas fa-eye"></i></button>
-                        <button type="button" class="btn btn-success btn-sm status p-0 border border-white" data-prefix="appointment" data-status="'.strtolower($data->appointment_status).'" data-id="'.$data->appointment_id.'"><i class="far fa-calendar-check  fa-2x"></i></button>
-                    </div>';
-                    return $actionBtn;
+                    $id=$data->getKey();
+                    // status of the row
+                    $status=$data->appointment_status;
+                    // data to display on modal, tables
+                    $prefix="appointment";
+                    // optional button to display
+                    $buttons=['delete','edit','status','view'];
+                    $actionBtn = view('text_buttons',compact('buttons','id','status','prefix'))->render();
+                   return $actionBtn;                    
                 })
             ->editColumn('appointment_start_time', function ($data) {
                     return $data->appointment_start_time->format('Y-m-d H:i');
@@ -38,6 +39,8 @@ class AppointmentController extends Controller
             ->editColumn('appointment_end_time', function ($data) {
                     if($data->appointment_end_time!==NULL)
                     return $data->appointment_end_time->format('Y-m-d H:i');
+                    else
+                    return $data->appointment_start_time->addMinutes(30)->format('Y-m-d H:i');
                 })
                 //edit background and status text according to if the appointment was in past or future
                 //if the appointment status is active or not active
@@ -45,7 +48,8 @@ class AppointmentController extends Controller
                     $start = $data->appointment_start_time;
                     $status = $data->is_active() ? ($start < today() ? 'Finished' : 'Confirmed') : ($start > today() ?'Waiting':ucfirst($data->appointment_status));
                     $class = $data->is_active() ? ($start < today() ?'primary':'success') : ($start < today() ? 'warning' : 'danger');
-                    return '<span class="badge border border-white badge-' . $class . ' btn-sm">' . $status . '</span>';
+                    //render status with css from view
+                    return view('badge',compact('status','class'))->render();
                 })
             //adjust the default background of table row
             ->setRowClass(function ($data) {
@@ -67,65 +71,42 @@ class AppointmentController extends Controller
                     })
            ->make(true);
         }
-        $info=CompanyInfo::first();
+
+        
         //load deprtment for select list
         $department=Select::instance()->load_department();
         $page='appointment';
-        return view('appointment',compact('info','page','department'));
+        $info=CompanyInfo::first();
+        return view('appointments',compact('info','page','department'));
     }
 
     //send doctor list for select menu
     public function create()
     {
         $doctor=Doctor::all();
-        return response()->json($doctor);
+        return response()->json(compact('doctor'));
     }
 
     public function show(Appointment $appointment)
     {
-        $output = '<div class="table-responsive">
-        <table class="table table-bordered">';
-
+        $viewdatas =[];
     if($appointment->patient)
-        $output .='
-            <tr>
-                <td>Patient Name</td><td>'.$appointment->patient->patient_name.'</td>
-            </tr>
-            <tr>
-                <td>Patient Email</td><td>'.$appointment->patient->patient_email.'</td>
-            </tr>
-            <tr>
-                <td>Patient Mobile No.</td><td>'.$appointment->patient->patient_contact.'</td>
-            </tr>
-            <tr>
-                <td>Patient Address</td><td>'.$appointment->patient->patient_address.'</td>
-            </tr>';
-            $output .='
-            <tr>
-                <td>Department</td><td>'.$appointment->department->department_name.'</td>
-            </tr>
-            <tr>
-                <td>Doctor To visit</td><td>'.$appointment->doctor->doctor_name.'</td>
-            </tr>
-            <tr>
-                <td>Reason to Visit</td><td>'.$appointment->appointment_reason.'</td>
-            </tr>
-            <tr>
-                <td>Status</td>
-                <td>
-                    <span class="badge badge-'.($appointment->appointment_status == "inactive"?'danger">Waiting'
-                    :'success">Confirmed')
-                    .'</span>
-                </td>
-            </tr>';
-            if(auth()->user()->is_admin())
-            $output .=
-            '<tr>
-                <td>Entered By</td><td>'.$appointment->user->username.'</td>
-            </tr>'
-            .' </table>
-            </div>';
-            return response()->json(array('response'=>$output));
+    $viewdatas =[
+                'Patient Name'=>$appointment->patient_name,
+                'Patient Email'=>$appointment->patient->patient_email,
+                'Patient Mobile No.'=>$appointment->patient->patient_contact,
+                'Patient Address'=>$appointment->patient->patient_address,
+                'Department'=>$appointment->department->department_name,
+                'Doctor To visit'=>$appointment->doctor->doctor_name,
+                'Reason to Visit'=>$appointment->appointment_reason,
+                'Status'=>['class'=>$appointment->appointment_status == "inactive"?'danger':'success',
+                'value'=>$appointment->appointment_status == "inactive"?'waiting':'confirmed'
+                ]
+        ];
+        if(auth()->user()->is_admin())
+        $viewdatas ['Entered By']=$appointment->user->username;
+            $output=view('view-modal',compact('viewdatas'))->render();
+            return response()->json($output);
         }
         public function edit(Appointment $appointment)
         {
@@ -155,7 +136,8 @@ class AppointmentController extends Controller
             ]);
         }
         Appointment::create(array_filter($request->all()));
-         return response()->json(array('response'=>'<div class="alert alert-success">Appointment Added</div>'));
+        return response()->json(array('response'=>__('message.create',['name'=>'appointment'])));
+
     }
     public function update(Request $request, Appointment $appointment)
     {
@@ -175,15 +157,13 @@ class AppointmentController extends Controller
         }
 
         $appointment->update(array_filter($request->all()));
-		return response()->json(array('response'=>'<div class="alert alert-success">'.
-                ' Appointment Updated'
-        .'</div>'));
+		return response()->json(array('response'=>__('message.update',['name'=>'appointment'])));
     }
 
 
     public function destroy(Appointment $appointment)
     {
         $appointment->delete();
-        return response()->json(array('response'=>'<div class="alert alert-success">The Appointment was deleted!</div>'));
+        return response()->json(array('response'=>__('message.delete',['name'=>'appointment'])));
     }
 }

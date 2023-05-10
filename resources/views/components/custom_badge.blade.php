@@ -1,0 +1,1 @@
+<span class="custom-badge status-{{$class=='danger'?'red':'green'}}">{{ucwords($status)}}</span>

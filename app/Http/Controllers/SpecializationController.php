@@ -22,29 +22,25 @@ class SpecializationController extends Controller
     {
         if ($request->ajax()) {
             $data = Specialization::get();
-            return DataTables::of($data)
-                ->addIndexColumn()
+            return DataTables::of($data)             
                 ->addColumn('action', function($data){
-                    $actionBtn = '
-                    <div class="text-center">
-                        <button type="button"class="btn btn-warning btn-sm update" data-prefix="Specialization" data-status="'.$data->status.'" data-id="'.$data->specialization_id.'"><i class="fas fa-edit"></i></button>
-                        <button type="button" class="btn btn-danger btn-sm delete_button delete" data-prefix="specialization" data-status="'.$data->status.'" id="'.$data->specialization_id.'" data-id="'.$data->specialization_id.'"><i class="fas fa-times"></i></button>
-                    </div>';
+                    $element='specialization';
+                    $id=$data->getKey();
+                    $actionBtn = view('text_buttons',compact('id','element'))->render();            
                     return $actionBtn;
                 })
-                ->addColumn('status', function ($data) {
-                    if($data->specialization_status == 'active')
-                        $status = '<span  class="badge badge-success btn-sm">'.$data->specialization_status.'</span>';
-                    else
-                        $status = '<span  class="badge badge-danger btn-sm">'.$data->specialization_status.'</span>';
-                        return $status;
-                     })
+                ->editColumn('specialization_status', function ($data) {               
+                    $status =$data->specialization_status;
+                    $class=$status=='active'?'success':'danger';
+                    //render status with css from view
+                    return view('custom_badge',compact('status','class'))->render();               
+            })                
                 ->make(true);
         }
         $info=CompanyInfo::first();
         $page='specialization';
-        return view('specialization',
-        compact('info','page' )      );
+        return view('specializations',
+        compact('info','page' ));
 
     }
 
@@ -55,8 +51,9 @@ class SpecializationController extends Controller
             'specialization_name' => ['required', 'string', 'max:255','unique:specializations'],
         ]);
         Specialization::create($request->all());
-        return response()->json(array('error'=>'','success'=>'<div class="alert alert-success">The specialization was created!</div>'));
+        return response()->json(array('response'=>__('message.create',['name'=>'specialization'])));
     }
+
 
     public function edit(Specialization $specialization)
     {
@@ -70,13 +67,14 @@ class SpecializationController extends Controller
         $this->validate($request, [
             'specialization_name' => ['required', 'string', 'max:255',Rule::unique('specializations')->ignore($specialization)]]);
         $specialization->update($request->all());
-        return response()->json(array('error'=>'','response'=>'<div class="alert alert-success">The specialization was updated!</div>'));
+        return response()->json(array('response'=>__('message.update',['name'=>'specialization'])));
+
     }
 
 
     public function destroy(Specialization $specialization)
     {
         $specialization->delete();
-        return response()->json('<div class="alert alert-success">The Specialization was deleted!</div>');
+        return response()->json(array('response'=>__('message.delete',['name'=>'specialization'])));
     }
 }

@@ -1,6 +1,5 @@
-@include('config')
-@include('layouts.header')
-@include('layouts.sidebar')
+@include('layouts.new_header')
+@include('layouts.new_sidebar')
 <?php
 $setup=false;
 if(session()->has('setup') && session()->exists('setup')||isset($setuppage))
@@ -106,6 +105,7 @@ if(session()->has('setup') && session()->exists('setup')||isset($setuppage))
                         </div>
                         <input type="hidden" name="branch_id" id="admin_password" value="<?php echo ($setup)?'':$info->branch_id?>" />
                     </form>
-                    @include('layouts.footer')
+@include('layouts.footer')
+@include('layouts.footer_script')
 
 

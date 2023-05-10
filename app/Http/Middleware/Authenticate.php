@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Middleware;
-
+use Closure;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
-
+use Illuminate\Support\Facades\Route;
+use App\Models\CompanyInfo;
 class Authenticate extends Middleware
 {
     /**
@@ -16,11 +17,23 @@ class Authenticate extends Middleware
     {
         if (! $request->expectsJson()) {
 
-            return route('login');
+            return route('heading');
         }
+    }
 
 
 
+    public function handle($request, Closure $next, ...$guards)
+    {
+        $info=CompanyInfo::first();        
+        $page=explode('.',Route::currentRouteName())[0];
+       $dashboard_active=$patient_active=$appointment_active=
+        $user_active=$department_active=$doctor_active=$specialization_active='inactive';
+        ${$page."_active"} = 'active';
+        view()->share(compact('dashboard_active','patient_active',
+        'appointment_active','doctor_active','department_active','specialization_active',
+      'user_active','page','info'));
 
+        return parent::handle($request, $next);
     }
 }

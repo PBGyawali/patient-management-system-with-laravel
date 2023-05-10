@@ -45,4 +45,8 @@ class Department extends Model
         return ucwords($name);
     }
 
+    function is_active(){
+        return $this->department_status=='active';
+    }
+
 }
